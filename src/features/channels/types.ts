@@ -4,7 +4,7 @@ export enum ChannelType {
 
 export const ChannelTypeLabels: Record<ChannelType, string> = {
   [ChannelType.WHATSAPP_BAILEYS]: 'Baileys',
-}
+};
 
 export interface Channel {
   id: string;
@@ -14,4 +14,10 @@ export interface Channel {
   isAuthenticated: boolean;
   createdAt?: string;
   updatedAt?: string;
+}
+
+export interface CreateChannelPayload {
+  name: string;
+  type: string;
+  identifier: string;
 }

@@ -2,6 +2,7 @@
 import IconLoading from '@/components/Icons/IconLoading.vue';
 import { reactive, ref } from 'vue';
 import BaseModal from '@/components/BaseModal.vue';
+import { channelService } from '@/features/channels/service';
 
 const modalBase = ref<InstanceType<typeof BaseModal> | null>(null);
 
@@ -13,14 +14,20 @@ const state = reactive<{
   isLoading: false,
 });
 
+const emit = defineEmits<{
+  (e: 'channelDeleted'): void
+}>();
+
 async function destroy(): Promise<void> {
   state.isLoading = true;
 
-  setTimeout(() => {
-    console.log('Destroying channel:', state.currentChannelId);
+  try {
+    await channelService.delete(state.currentChannelId);
     modalBase.value?.close();
+    emit('channelDeleted');
+  } finally {
     state.isLoading = false;
-  }, 1000);
+  }
 }
 
 async function open(channelId: string): Promise<void> {

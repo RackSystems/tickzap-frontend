@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { reactive, ref } from 'vue';
 import { ChannelTypeLabels } from '@/features/channels/types';
+import { channelService } from '@/features/channels/service';
 import { ErrorMessage, Field, Form } from 'vee-validate';
 import IconLoading from '@/components/Icons/IconLoading.vue';
 import BaseModal from '@/components/BaseModal.vue';
@@ -11,16 +12,32 @@ const modalBase = ref<InstanceType<typeof BaseModal> | null>(null);
 const form = reactive({
   name: '',
   type: '',
+  identifier: '',
 });
+
+const emit = defineEmits<{
+  (e: 'channelCreated'): void
+}>();
 
 async function submitHandler(): Promise<void> {
   isLoading.value = true;
 
-  setTimeout(() => {
-    console.log('Form submitted:', form);
+  try {
+    await channelService.create({
+      name: form.name,
+      type: form.type,
+      identifier: form.identifier,
+    });
+
+    form.name = '';
+    form.type = '';
+    form.identifier = '';
+    
     modalBase.value?.close();
+    emit('channelCreated');
+  } finally {
     isLoading.value = false;
-  }, 1000);
+  }
 }
 
 function open(): void {
@@ -53,6 +70,14 @@ defineExpose({ open });
         </option>
       </Field>
       <ErrorMessage name="type" class="error-message" />
+      
+      <Field
+        name="identifier"
+        v-model="form.identifier"
+        placeholder="Identificador"
+        rules="required"
+      />
+      <ErrorMessage name="identifier" class="error-message" />
 
       <button type="submit" :disabled="isLoading" class="flex justify-center items-center">
         <IconLoading v-if="isLoading" class="mr-2" />

@@ -107,10 +107,10 @@ onMounted(list);
   </div>
 
   <!-- Create Channel Modal -->
-  <CreateModal ref="createModal" />
+  <CreateModal ref="createModal" @channel-created="list" />
 
   <!-- Delete Channel Modal -->
-  <DeleteModal ref="deleteModal" />
+  <DeleteModal ref="deleteModal" @channel-deleted="list" />
 
   <!-- QR Code Modal -->
   <QRCodeModal ref="qrCodeModal" />
