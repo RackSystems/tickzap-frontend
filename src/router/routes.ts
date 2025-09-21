@@ -23,6 +23,26 @@ export const routes: Array<RouteRecordRaw & { meta: RouteMetaCustom }> = [
   },
 
   {
+    path: '/tickets',
+    name: 'Tickets',
+    component: () => import('@/features/tickets/ChatView.vue'),
+    meta: {
+      auth: true,
+      title: 'Tickets',
+    },
+  },
+
+  {
+    path: '/tickets/:id',
+    name: 'TicketChat',
+    component: () => import('@/features/tickets/ChatView.vue'),
+    meta: {
+      auth: true,
+      title: 'Chat de Ticket',
+    },
+  },
+
+  {
     path: '/login',
     name: 'Login',
     component: () => import('@/features/auth/views/LoginView.vue'),

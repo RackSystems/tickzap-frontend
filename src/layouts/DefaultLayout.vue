@@ -47,8 +47,8 @@ async function logoutHandler(): Promise<void> {
             </RouterLink>
           </li>
           <li>
-            <RouterLink to="/" @click="toggleMobileMenu">
-              Chats
+            <RouterLink to="/tickets" @click="toggleMobileMenu">
+              Tickets
             </RouterLink>
           </li>
           <li>
@@ -79,7 +79,7 @@ async function logoutHandler(): Promise<void> {
                 <RouterLink to="/">Home</RouterLink>
               </li>
               <li>
-                <RouterLink to="/">Chats</RouterLink>
+                <RouterLink to="/tickets">Tickets</RouterLink>
               </li>
               <li>
                 <RouterLink to="/canais">Canais</RouterLink>
