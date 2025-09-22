@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { computed, ref, watch, nextTick } from 'vue';
-import { useTicketsStore } from '../useTicketsStore';
+import { useTicketStore } from '../useTicketStore';
 import MessageItem from './MessageItem.vue';
 import IconLoading from '@/components/Icons/IconLoading.vue';
 
-const ticketsStore = useTicketsStore();
+const ticketsStore = useTicketStore();
 
 defineProps<{
   showBackButton?: boolean;
