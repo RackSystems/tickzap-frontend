@@ -49,9 +49,9 @@ onMounted(list);
       <IconLoading />
     </div>
 
-    <div v-else-if="state.channels.length === 0" class="bg-gray-50 rounded-lg shadow-lg p-8 text-center">
-      <p class="text-gray-900">Nenhum canal encontrado</p>
-    </div>
+<!--    <div v-else-if="!state.channels || state.channels.length === 0" class="bg-gray-50 rounded-lg shadow-lg p-8 text-center">-->
+<!--      <p class="text-gray-900">Nenhum canal encontrado</p>-->
+<!--    </div>-->
 
     <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
       <!-- Channel Card -->
