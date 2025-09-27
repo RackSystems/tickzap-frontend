@@ -148,10 +148,8 @@ async function logoutHandler(): Promise<void> {
       </header>
     </div>
 
-    <main class="flex-1 overflow-hidden">
-      <div class="container mx-auto px-4 py-6">
-        <slot />
-      </div>
+    <main class="flex-1 container mx-auto pt-6 pb-2">
+      <slot />
     </main>
 
     <footer class="footer footer-center text-center text-sm text-gray-500 py-4 hidden lg:block">
