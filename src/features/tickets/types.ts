@@ -15,9 +15,18 @@ export interface Ticket {
 export interface Message {
   id: string;
   ticketId: string;
+  userId: string | null;
+  contactId: string;
   content: string;
+  mediaUrl: string | null;
+  mediaType: string | null;
+  type: 'CLIENT' | 'USER';
+  status: 'SENT' | 'RECEIVED' | 'READ';
+  sentAt: string;
+  receivedAt: string | null;
+  readAt: string | null;
   createdAt: string;
-  userId: string;
+  updatedAt: string;
   user?: User;
 }
 

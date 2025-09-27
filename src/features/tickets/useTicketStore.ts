@@ -20,7 +20,15 @@ export const useTicketStore = defineStore('tickets', () => {
     isLoading.value = true;
     try {
       const response = await apiClient.get('/tickets');
-      tickets.value = (response.data.body as Ticket[]) || [];
+      const apiTickets = response.data || [];
+      tickets.value = apiTickets.map((ticket: any) => ({
+        id: ticket.id,
+        title: ticket.contact.name,
+        status: ticket.status.toLowerCase(),
+        createdAt: ticket.createdAt,
+        updatedAt: ticket.updatedAt,
+        user: ticket.user,
+      }));
     } catch (error) {
       handleApiError(error, 'Oops! Ocorreu um erro ao carregar os tickets.');
     } finally {
@@ -33,8 +41,8 @@ export const useTicketStore = defineStore('tickets', () => {
 
     isLoading.value = true;
     try {
-      const response = await apiClient.get(`/tickets/${selectedTicketId.value}/chat`);
-      messages.value = response.data.body as Message[];
+      const response = await apiClient.get(`/tickets/${selectedTicketId.value}/messages`);
+      messages.value = response.data
     } catch (error) {
       handleApiError(error, 'Oops! Ocorreu um erro ao carregar as mensagens.');
     } finally {
@@ -53,7 +61,8 @@ export const useTicketStore = defineStore('tickets', () => {
     isLoading.value = true;
     try {
       const response = await apiClient.post(`/tickets/${selectedTicketId.value}/chat`, { content });
-      messages.value.push(response.data.body as Message);
+      const msg = (response?.data && (response.data.body ?? response.data)) as Message | undefined;
+      if (msg) messages.value.push(msg);
     } catch (error) {
       handleApiError(error, 'Oops! Ocorreu um erro ao enviar a mensagem.');
     } finally {
