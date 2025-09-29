@@ -20,15 +20,7 @@ export const useTicketStore = defineStore('tickets', () => {
     isLoading.value = true;
     try {
       const response = await apiClient.get('/tickets');
-      const apiTickets = response.data || [];
-      tickets.value = apiTickets.map((ticket: any) => ({
-        id: ticket.id,
-        title: ticket.contact.name,
-        status: ticket.status.toLowerCase(),
-        createdAt: ticket.createdAt,
-        updatedAt: ticket.updatedAt,
-        user: ticket.user,
-      }));
+      tickets.value = response.data as Ticket[];
     } catch (error) {
       handleApiError(error, 'Oops! Ocorreu um erro ao carregar os tickets.');
     } finally {

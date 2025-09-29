@@ -3,13 +3,37 @@ export interface User {
   username: string;
 }
 
+export interface Contact {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  avatar: string | null;
+  "birthDate": string | null;
+  "document": string | null;
+  "status": boolean;
+  "remoteJid": string;
+  "channelId": string;
+  "createdAt": string;
+  "updatedAt": string;
+}
+
+export interface LastMessage {
+  content: string | null;
+  createdAt: string | null;
+  mediaType: string | null;
+}
+
 export interface Ticket {
   id: string;
-  title: string;
+  contactId: string;
+  channelId: string;
   status: string;
+  userId: string;
   createdAt: string;
   updatedAt: string;
-  user?: User;
+  contact?: Contact;
+  lastMessage: LastMessage | null;
 }
 
 export interface Message {
