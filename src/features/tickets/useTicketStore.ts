@@ -62,6 +62,25 @@ export const useTicketStore = defineStore('tickets', () => {
     }
   };
 
+  const sendMediaMessage = async (formData: FormData): Promise<void> => {
+    if (!selectedTicketId.value) return;
+
+    isLoading.value = true;
+    try {
+      const response = await apiClient.post(`/tickets/messages/send`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      const msg = (response?.data && (response.data.body ?? response.data)) as Message | undefined;
+      if (msg) messages.value.push(msg);
+    } catch (error) {
+      handleApiError(error, 'Oops! Ocorreu um erro ao enviar a mídia.');
+    } finally {
+      isLoading.value = false;
+    }
+  };
+
   const clearChat = (): void => {
     selectedTicketId.value = null;
     messages.value = [];
@@ -77,6 +96,7 @@ export const useTicketStore = defineStore('tickets', () => {
     selectTicket,
     fetchMessages,
     sendMessage,
+    sendMediaMessage,
     clearChat,
   };
 });
