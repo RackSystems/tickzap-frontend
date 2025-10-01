@@ -3,6 +3,7 @@ import { onMounted, ref } from 'vue';
 import { useTicketStore } from './useTicketStore';
 import { formatChatDate, formatChatTimestamp, formatDate } from '@/utils/date';
 import Avatar from '@/features/tickets/components/Avatar.vue';
+import AudioPlayer from '@/features/tickets/components/AudioPlayer.vue';
 
 const ticketsStore = useTicketStore();
 const openDropDown = ref<boolean>(false);
@@ -241,7 +242,14 @@ onMounted(async (): Promise<void> => await ticketsStore.fetchTickets());
                     {'rounded-tl-sm bg-gray-100': message.type === 'CLIENT'},
                   ]"
               >
-                <p class="text-sm text-gray-800">
+                <div v-if="message.mediaType === 'IMAGE' && message.mediaUrl">
+                  <img :src="`${message.mediaUrl}`" alt="Image" class="rounded-lg">
+                  <p class="text-sm text-gray-800 mt-2">{{ message.content }}</p>
+                </div>
+                <div v-else-if="message.mediaType === 'AUDIO' && message.mediaUrl">
+                  <AudioPlayer :src="message.mediaUrl" />
+                </div>
+                <p v-else class="text-sm text-gray-800">
                   {{ message.content }}
                 </p>
               </div>
@@ -253,25 +261,6 @@ onMounted(async (): Promise<void> => await ticketsStore.fetchTickets());
               <!-- Message Info End -->
             </div>
             <!-- Message End -->
-
-<!--            <div class="max-w-[350px]">-->
-<!--              <div class="flex items-start gap-4">-->
-<!--                <div>-->
-<!--                  <div class="mb-2 w-full max-w-[270px] overflow-hidden rounded-lg">-->
-<!--                    <img src="https://blog.gale.com/wp-content/uploads/2024/07/iStock-1693812103.jpg" alt="chat">-->
-<!--                  </div>-->
-<!--                  <div class="max-w-max rounded-lg rounded-tl-sm bg-gray-100 px-3 py-2">-->
-<!--                    <p class="text-sm text-gray-800">-->
-<!--                      Please preview the image-->
-<!--                    </p>-->
-<!--                  </div>-->
-
-<!--                  <p class="mt-2 text-theme-xs text-gray-500">-->
-<!--                    Lindsey, 2 hours ago-->
-<!--                  </p>-->
-<!--                </div>-->
-<!--              </div>-->
-<!--            </div>-->
           </div>
           <!-- Footer -->
           <div class="sticky bottom-0 border-t border-gray-200 p-3 flex justify-between">
