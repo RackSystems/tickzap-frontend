@@ -10,16 +10,22 @@ export function formatDate(dateString: string): string {
 
 // Retorna "dd/MM HH:SS" (SS = segundos). Se quiser minutos, troque second por minute.
 export function formatChatDate(dateStr?: string | null): string {
-  if (!dateStr) return '';
-  const d = new Date(dateStr);
-  if (isNaN(d.getTime())) return '';
+  if (!dateStr) {
+    return '';
+  }
 
-  const dd = String(d.getDate()).padStart(2, '0');
-  const mm = String(d.getMonth() + 1).padStart(2, '0');
-  const HH = String(d.getHours()).padStart(2, '0');
-  const SS = String(d.getSeconds()).padStart(2, '0');
+  const date = new Date(dateStr);
 
-  return `${dd}/${mm} ${HH}:${SS}`;
+  if (isNaN(date.getTime())) {
+    return '';
+  }
+
+  const dd = String(date.getDate()).padStart(2, '0');
+  const mm = String(date.getMonth() + 1).padStart(2, '0');
+  const HH = String(date.getHours()).padStart(2, '0');
+  const MM = String(date.getMinutes()).padStart(2, '0');
+
+  return `${dd}/${mm} ${HH}:${MM}`;
 }
 
 // Formata como chat: Hoje => HH:mm, Ontem => "Ontem", semana => dia da semana, senão => dd/MM/yyyy
