@@ -1,15 +1,59 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import {ref, computed, onMounted, onUpdated} from 'vue';
 import IconLoading from '@/components/Icons/IconLoading.vue';
-import { useAuthStore } from '@/features/auth/useAuthStore';
+import {useAuthStore} from '@/features/auth/useAuthStore';
 import IconMenu from '@/components/Icons/IconMenu.vue';
 import IconNotifications from '@/components/Icons/IconNotifications.vue';
 import IconClose from '@/components/Icons/IconClose.vue';
+import apiClient from "@/api/apiClient";
+import { useToast } from 'vue-toastification';
 
 const auth = useAuthStore();
+const toast = useToast();
 
 const isLoading = ref<boolean>(false);
 const mobileMenuOpen = ref<boolean>(false);
+
+const statuses = [
+  {text: 'Online', value: 'online', color: 'success'},
+  {text: 'Ocupado', value: 'busy', color: 'error'},
+  {text: 'Ausente', value: 'away', color: 'warning'},
+  {text: 'Offline', value: 'offline', color: 'neutral'},
+  {text: 'Ocioso', value: 'idle', color: 'info'}
+];
+
+const statusColor = computed(() => {
+  const status = statuses.find(s => s.value === currentStatus.value);
+  return status ? `status-${status.color}` : 'status-neutral';
+});
+
+const currentStatus = computed(() => auth.user?.status || 'offline');
+
+onMounted(() => {
+  console.log('STATUS ', currentStatus.value);
+});
+
+onUpdated(() => {
+  console.log('STATUS (updated): ', currentStatus.value);
+});
+
+
+async function changeStatus(status: string) {
+  const oldStatus = currentStatus.value;
+  try {
+    const response = await apiClient.patch(`/users/${auth.user.id}/status`, { status: status });
+    if (auth.user) {
+      auth.user.status = response.data.status;
+    }
+    // currentStatus.value = response.data.status;
+  } catch (error) {
+    toast.clear();
+    toast.error('Oops! Ocorreu um erro ao alterar o status do usuário.');
+    // currentStatus.value = oldStatus;
+    console.error(error);
+  }
+  console.info(`STATUS (change) ${oldStatus} to: `, currentStatus.value);
+}
 
 const toggleMobileMenu = (): void => {
   mobileMenuOpen.value = !mobileMenuOpen.value;
@@ -28,15 +72,16 @@ async function logoutHandler(): Promise<void> {
   <div class="min-h-screen flex flex-col h-screen background">
 
     <!-- Mobile Menu Drawer -->
-    <div v-if="mobileMenuOpen" class="lg:hidden fixed inset-y-0 left-0 w-64 bg-gray-50 shadow-lg z-50 p-5 flex flex-col justify-between">
+    <div v-if="mobileMenuOpen"
+         class="lg:hidden fixed inset-y-0 left-0 w-64 bg-gray-50 shadow-lg z-50 p-5 flex flex-col justify-between">
       <div class="flex flex-col gap-5">
         <div class="flex justify-between items-center">
           <RouterLink to="/" @click="toggleMobileMenu">
-            <img src="/images/logo.png" alt="Tickzap" class="w-24" />
+            <img src="/images/logo.png" alt="Tickzap" class="w-24"/>
           </RouterLink>
 
           <button class="btn btn-ghost btn-sm" @click="toggleMobileMenu">
-            <IconClose />
+            <IconClose/>
           </button>
         </div>
 
@@ -65,11 +110,12 @@ async function logoutHandler(): Promise<void> {
     </div>
 
     <div class="w-full pt-2 px-4 md:px-6" id="navbar">
-      <header class="navbar p-3 flex w-full items-center justify-between text-gray-900 bg-gray-50 shadow-lg rounded-full">
+      <header
+          class="navbar p-3 flex w-full items-center justify-between text-gray-900 bg-gray-50 shadow-lg rounded-full">
         <div class="navbar-start">
           <div class="flex-none lg:hidden">
             <button class="btn btn-square btn-ghost" @click="toggleMobileMenu">
-              <IconMenu />
+              <IconMenu/>
             </button>
           </div>
 
@@ -90,14 +136,14 @@ async function logoutHandler(): Promise<void> {
 
         <div class="navbar-center">
           <RouterLink to="/">
-            <img src="/images/logo.png" alt="Tickzap" class="w-28 lg:w-32 hover:animate-pulse" />
+            <img src="/images/logo.png" alt="Tickzap" class="w-28 lg:w-32 hover:animate-pulse"/>
           </RouterLink>
         </div>
 
         <div class="navbar-end gap-2 md:gap-4 space-x-4 px-5">
           <div class="dropdown dropdown-end">
             <label tabindex="0" class="btn btn-ghost btn-circle relative cursor-pointer">
-              <IconNotifications class="text-gray-600" />
+              <IconNotifications class="text-gray-600"/>
               <div class="absolute -top-1 -right-1 flex h-3 w-3">
                 <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
                 <span class="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
@@ -112,7 +158,7 @@ async function logoutHandler(): Promise<void> {
 
           <div class="dropdown dropdown-end">
             <label tabindex="0" class="indicator">
-              <span class="indicator-item status status-success"></span>
+              <span class="indicator-item status" :class="statusColor"></span>
               <img src="https://avatars.githubusercontent.com/u/104804099?v=4"
                    alt="Name"
                    class="w-8 sm:w-10 md:w-12 rounded-full"
@@ -125,7 +171,7 @@ async function logoutHandler(): Promise<void> {
 
               <li>
                 <button @click="logoutHandler" :disabled="isLoading">
-                  <IconLoading class="animate-spin h-5 w-5" v-if="isLoading" />
+                  <IconLoading class="animate-spin h-5 w-5" v-if="isLoading"/>
                   Sair
                 </button>
               </li>
@@ -133,13 +179,14 @@ async function logoutHandler(): Promise<void> {
               <li>
                 <details open>
                   <summary>Status</summary>
-                    <ul>
-                      <li><button>Online</button></li>
-                      <li><button>Ocupado</button></li>
-                      <li><button>Ausente</button></li>
-                      <li><button>Offline</button></li>
-                    </ul>
-                  </details>
+                  <ul v-for="status in statuses" :key="status.value">
+                    <li>
+                      <button @click="changeStatus(status.value)">
+                        {{ status.text }}
+                      </button>
+                    </li>
+                  </ul>
+                </details>
               </li>
 
             </ul>
@@ -149,7 +196,7 @@ async function logoutHandler(): Promise<void> {
     </div>
 
     <main class="flex-1 container mx-auto pt-6 pb-2">
-      <slot />
+      <slot/>
     </main>
 
     <footer class="footer footer-center text-center text-sm text-gray-500 py-4 hidden lg:block">
