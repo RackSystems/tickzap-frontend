@@ -5,11 +5,10 @@ import {useAuthStore} from '@/features/auth/useAuthStore';
 import IconMenu from '@/components/Icons/IconMenu.vue';
 import IconNotifications from '@/components/Icons/IconNotifications.vue';
 import IconClose from '@/components/Icons/IconClose.vue';
-import apiClient from "@/api/apiClient";
-import { useToast } from 'vue-toastification';
+import UserService from "@/features/auth/services/UserService";
+import {handleApiError} from "@/api/handleApiError";
 
 const auth = useAuthStore();
-const toast = useToast();
 
 const isLoading = ref<boolean>(false);
 const mobileMenuOpen = ref<boolean>(false);
@@ -41,16 +40,13 @@ onUpdated(() => {
 async function changeStatus(status: string) {
   const oldStatus = currentStatus.value;
   try {
-    const response = await apiClient.patch(`/users/${auth.user.id}/status`, { status: status });
-    if (auth.user) {
-      auth.user.status = response.data.status;
+    if (!auth.user) {
+      return;
     }
-    // currentStatus.value = response.data.status;
+    const response = await UserService.updateStatus(auth.user.id, status);
+    auth.user.status = response.status;
   } catch (error) {
-    toast.clear();
-    toast.error('Oops! Ocorreu um erro ao alterar o status do usuário.');
-    // currentStatus.value = oldStatus;
-    console.error(error);
+    return handleApiError(error, 'Oops! Ocorreu um erro ao alterar status.');
   }
   console.info(`STATUS (change) ${oldStatus} to: `, currentStatus.value);
 }
