@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {ref, computed, onMounted, onUpdated} from 'vue';
+import {ref, computed, onMounted, onUpdated, watch} from 'vue'
 import IconLoading from '@/components/Icons/IconLoading.vue';
 import {useAuthStore} from '@/features/auth/useAuthStore';
 import IconMenu from '@/components/Icons/IconMenu.vue';
@@ -7,6 +7,7 @@ import IconNotifications from '@/components/Icons/IconNotifications.vue';
 import IconClose from '@/components/Icons/IconClose.vue';
 import UserService from "@/features/auth/services/UserService";
 import {handleApiError} from "@/api/handleApiError";
+import {useInactivityMonitor} from "@/composables/useInactivityMonitor";
 
 const auth = useAuthStore();
 
@@ -28,14 +29,38 @@ const statusColor = computed(() => {
 
 const currentStatus = computed(() => auth.user?.status || 'offline');
 
+const IDLE_TIMEOUT_SECONDS = 300
+const OFFLINE_TIMEOUT_MINUTES = 15
+const { isUserActive, inactiveMinutes } = useInactivityMonitor(1000, IDLE_TIMEOUT_SECONDS);
+
 onMounted(() => {
   console.log('STATUS ', currentStatus.value);
+  console.log('is user active ', isUserActive)
 });
 
 onUpdated(() => {
   console.log('STATUS (updated): ', currentStatus.value);
+  console.log('is user active (updated): ', isUserActive)
 });
 
+watch(isUserActive, (isActive: boolean) => {
+  if (!auth.user) return;
+  const isCurrentlyIdle = currentStatus.value === 'idle';
+  const isCurrentOnline = currentStatus.value === 'online';
+  if (isActive && !isCurrentOnline) {
+    changeStatus('online');
+  } else if (!isActive && !isCurrentlyIdle) {
+    changeStatus('idle');
+  }
+});
+
+watch(inactiveMinutes, (minutes: number) => {
+  if (!auth.user) return;
+  const isCurrentlyOffline = currentStatus.value === 'offline';
+  if (minutes >= OFFLINE_TIMEOUT_MINUTES && !isCurrentlyOffline) {
+    changeStatus('offline');
+  }
+});
 
 async function changeStatus(status: string) {
   const oldStatus = currentStatus.value;
@@ -48,7 +73,7 @@ async function changeStatus(status: string) {
   } catch (error) {
     return handleApiError(error, 'Oops! Ocorreu um erro ao alterar status.');
   }
-  console.info(`STATUS (change) ${oldStatus} to: `, currentStatus.value);
+  console.info(`STATUS (changed) ${oldStatus} to: `, currentStatus.value);
 }
 
 const toggleMobileMenu = (): void => {
