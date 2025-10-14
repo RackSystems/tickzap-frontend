@@ -1,4 +1,5 @@
 @import "tailwindcss";
+
 @plugin "daisyui" {
     themes: light --default;
 }
@@ -31,4 +32,25 @@ form button {
 
 .error-message {
     @apply ml-2 mb-2 text-sm text-red-500
+}
+
+/* Status Indicator Colors */
+.status.status-success {
+    @apply bg-green-500;
+}
+
+.status.status-error {
+    @apply bg-red-500;
+}
+
+.status.status-warning {
+    @apply bg-yellow-500;
+}
+
+.status.status-neutral {
+    @apply bg-gray-600;
+}
+
+.status.status-info {
+    @apply bg-sky-300;
 }
