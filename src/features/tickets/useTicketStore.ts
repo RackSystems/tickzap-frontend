@@ -47,14 +47,13 @@ export const useTicketStore = defineStore('tickets', () => {
     await fetchMessages();
   };
 
-  const sendMessage = async (content: string): Promise<void> => {
-    if (!content.trim() || !selectedTicketId.value) return;
-
+  const sendMessage = async (payload: any): Promise<void> => {
     isLoading.value = true;
     try {
-      const response = await apiClient.post(`/tickets/${selectedTicketId.value}/chat`, { content });
-      const msg = (response?.data && (response.data.body ?? response.data)) as Message | undefined;
-      if (msg) messages.value.push(msg);
+      const response = await apiClient.post(`/tickets/messages/send`, payload);
+      console.log(response)
+      // const msg = (response?.data && (response.data.body ?? response.data)) as Message | undefined;
+      // if (msg) messages.value.push(msg);
     } catch (error) {
       handleApiError(error, 'Oops! Ocorreu um erro ao enviar a mensagem.');
     } finally {

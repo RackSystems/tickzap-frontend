@@ -4,12 +4,12 @@ import { useTicketStore } from './useTicketStore';
 import { formatChatDate, formatChatTimestamp } from '@/utils/date';
 import Avatar from '@/features/tickets/components/Avatar.vue';
 import AudioPlayer from '@/features/tickets/components/AudioPlayer.vue';
+import axios from 'axios';
 
 const ticketsStore = useTicketStore();
 const openDropDown = ref<boolean>(false);
 const isMobile = ref<boolean>(false);
-
-onMounted(async (): Promise<void> => await ticketsStore.fetchTickets());
+const messageContent = ref('');
 
 // Audio Recording Logic
 const isRecording = ref(false);
@@ -17,8 +17,13 @@ const mediaRecorder = ref<MediaRecorder | null>(null);
 const audioChunks = ref<Blob[]>([]);
 const recordingTime = ref(0);
 let timerInterval: any = null;
+const formattedRecordingTime = computed(() => {
+  const minutes = Math.floor(recordingTime.value / 60);
+  const seconds = recordingTime.value % 60;
+  return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+});
 
-const startRecording = async () => {
+async function startRecording(): Promise<void> {
   try {
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
     isRecording.value = true;
@@ -52,21 +57,50 @@ const startRecording = async () => {
   }
 };
 
-const stopRecording = () => {
+function stopRecording(): void {
   if (mediaRecorder.value) {
     mediaRecorder.value.stop();
     isRecording.value = false;
     clearInterval(timerInterval);
     recordingTime.value = 0;
   }
-};
+}
 
-const formattedRecordingTime = computed(() => {
-  const minutes = Math.floor(recordingTime.value / 60);
-  const seconds = recordingTime.value % 60;
-  return `${minutes}:${seconds.toString().padStart(2, '0')}`;
-});
+async function sendMessage(): Promise<void> {
+  if (!ticketsStore.selectedTicket) {
+    return;
+  }
 
+  await ticketsStore.sendMessage({
+    ticketId: ticketsStore.selectedTicket.id,
+    contactId: ticketsStore.selectedTicket.contactId,
+    content: messageContent.value,
+    mediaUrl: null,
+    mediaType: null,
+  });
+
+  messageContent.value = '';
+}
+
+async function sendAudio(): Promise<void> {
+  if (!ticketsStore.selectedTicket) {
+    return;
+  }
+
+  const response = await ticketsStore.wantLink();
+
+  const links3 = response.data.link;
+
+  const audioURL = await axios.post(links3, {
+    audio: mediaRecorder
+  })
+
+  const response2 = await sendMessage();
+
+  messageContent.value = '';
+}
+
+onMounted(async (): Promise<void> => await ticketsStore.fetchTickets());
 </script>
 
 <template>
@@ -329,6 +363,8 @@ const formattedRecordingTime = computed(() => {
                   </svg>
                 </button>
                 <input
+                  v-model="messageContent"
+                  @keydown.enter="sendMessage"
                   class="h-9 w-full border-none bg-transparent pl-12 pr-5 text-sm text-gray-800 outline-none placeholder:text-gray-400 focus:border-0 focus:ring-0"
                   type="text"
                   placeholder="Digite sua mensagem..."
@@ -351,7 +387,7 @@ const formattedRecordingTime = computed(() => {
                     <path d="M9.5 8.25L9.5 9.75" stroke="" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
                   </svg>
                 </button>
-                <button class="ml-3 flex h-9 w-9 items-center justify-center rounded-lg bg-blue-400 text-gray-500 hover:bg-blue-600 xl:ml-5">
+                <button @click="sendMessage" class="ml-3 flex h-9 w-9 items-center justify-center rounded-lg bg-blue-400 text-gray-500 hover:bg-blue-600 xl:ml-5">
                   <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path fill-rule="evenodd" clip-rule="evenodd" d="M4.98481 2.44399C3.11333 1.57147 1.15325 3.46979 1.96543 5.36824L3.82086 9.70527C3.90146 9.89367 3.90146 10.1069 3.82086 10.2953L1.96543 14.6323C1.15326 16.5307 3.11332 18.4291 4.98481 17.5565L16.8184 12.0395C18.5508 11.2319 18.5508 8.76865 16.8184 7.961L4.98481 2.44399ZM3.34453 4.77824C3.0738 4.14543 3.72716 3.51266 4.35099 3.80349L16.1846 9.32051C16.762 9.58973 16.762 10.4108 16.1846 10.68L4.35098 16.197C3.72716 16.4879 3.0738 15.8551 3.34453 15.2223L5.19996 10.8853C5.21944 10.8397 5.23735 10.7937 5.2537 10.7473L9.11784 10.7473C9.53206 10.7473 9.86784 10.4115 9.86784 9.99726C9.86784 9.58304 9.53206 9.24726 9.11784 9.24726L5.25157 9.24726C5.2358 9.20287 5.2186 9.15885 5.19996 9.11528L3.34453 4.77824Z" fill="white"></path>
                   </svg>
