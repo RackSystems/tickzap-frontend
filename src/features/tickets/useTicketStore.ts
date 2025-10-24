@@ -34,7 +34,7 @@ export const useTicketStore = defineStore('tickets', () => {
     isLoading.value = true;
     try {
       const response = await apiClient.get(`/tickets/${selectedTicketId.value}/messages`);
-      messages.value = response.data
+      messages.value = response.data;
     } catch (error) {
       handleApiError(error, 'Oops! Ocorreu um erro ao carregar as mensagens.');
     } finally {
@@ -51,7 +51,7 @@ export const useTicketStore = defineStore('tickets', () => {
     isLoading.value = true;
     try {
       const response = await apiClient.post(`/tickets/messages/send`, payload);
-      console.log(response)
+      console.log(response);
       // const msg = (response?.data && (response.data.body ?? response.data)) as Message | undefined;
       // if (msg) messages.value.push(msg);
     } catch (error) {
@@ -80,6 +80,18 @@ export const useTicketStore = defineStore('tickets', () => {
     }
   };
 
+  const toggleAI = async (ticketId: string): Promise<any> => {
+    isLoading.value = true;
+    try {
+      const response = await apiClient.patch(`/tickets/${ticketId}/ai`);
+      return response.data;
+    } catch (error) {
+      handleApiError(error, 'Oops! Ocorreu um erro ao enviar a mensagem.');
+    } finally {
+      isLoading.value = false;
+    }
+  };
+
   const clearChat = (): void => {
     selectedTicketId.value = null;
     messages.value = [];
@@ -96,6 +108,7 @@ export const useTicketStore = defineStore('tickets', () => {
     fetchMessages,
     sendMessage,
     sendMediaMessage,
+    toggleAI,
     clearChat,
   };
 });

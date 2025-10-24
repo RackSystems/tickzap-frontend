@@ -100,6 +100,19 @@ async function sendAudio(): Promise<void> {
   messageContent.value = '';
 }
 
+async function toggleAI(): Promise<void> {
+  if (!ticketsStore.selectedTicket) {
+    return;
+  }
+
+  await ticketsStore.toggleAI(ticketsStore.selectedTicket.id);
+  // Atualizar o estado local do ticket após sucesso
+  const ticketIndex = ticketsStore.tickets.findIndex(t => t.id === ticketsStore.selectedTicket!.id);
+  if (ticketIndex !== -1) {
+    ticketsStore.tickets[ticketIndex].useAI = !ticketsStore.tickets[ticketIndex].useAI;
+  }
+}
+
 onMounted(async (): Promise<void> => await ticketsStore.fetchTickets());
 </script>
 
@@ -281,6 +294,13 @@ onMounted(async (): Promise<void> => await ticketsStore.fetchTickets());
             </div>
 
             <div class="flex items-center gap-3">
+              AI
+              <input 
+                type="checkbox" 
+                :checked="ticketsStore.selectedTicket.useAI" 
+                @change="toggleAI"
+                class="toggle" 
+              />
               <button class="text-gray-700 hover:text-gray-800 cursor-pointer">
                 <svg class="stroke-current" width="24" height="24" viewBox="0 0 24 24" fill="none"
                      xmlns="http://www.w3.org/2000/svg">

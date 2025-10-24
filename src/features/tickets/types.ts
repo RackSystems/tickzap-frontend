@@ -30,6 +30,7 @@ export interface Ticket {
   channelId: string;
   status: string;
   userId: string;
+  useAI: boolean;
   createdAt: string;
   updatedAt: string;
   contact?: Contact;
