@@ -20,4 +20,12 @@ export const channelService = {
     const response = await apiClient.get(`/channels/${id}/connect`);
     return response.data;
   },
+
+  //todo get channels with status = connected -> list with query param status
+  async listByStatus(status: string): Promise<Channel[]> {
+    const response = await apiClient.get<Channel[]>('/channels', {
+      params: { status }
+    });
+    return response.data;
+  },
 };
