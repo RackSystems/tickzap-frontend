@@ -5,47 +5,73 @@ import { channelService } from '@/features/channels/service'
 
 export const useWebSocketStore = defineStore('websocket', () => {
   const isConnected = ref(false);
+  const ws = ref<WebSocket | null>(null);
 
   const connect = (baseUrl: string = 'ws://localhost:3000') => {
     const ticketStore = useTicketStore();
 
     // WebSocket connection
-    const ws = new WebSocket(`${baseUrl}/ws-global`);
+    ws.value = new WebSocket(`${baseUrl}/ws-global`);
 
-    ws.onopen = () => {
+    ws.value.onopen = async () => {
       console.log('WebSocket conectado');
       isConnected.value = true;
 
       // logged user channel
-      const channels = channelService.listByStatus("connected");
-      const channelId = channels[0].id; //todo ajustar
-      ws.send(JSON.stringify({ type: 'joinChannel', channelId }));
+      try {
+        const channels = await channelService.listByStatus("connected");
+        const channelId = channels[0]?.id; //todo talvez isso mude
+        if (channelId) {
+          ws.value?.send(JSON.stringify({
+            type: 'joinChannel',
+            channelId
+          }));
+        }
+      } catch (error) {
+        console.error('Erro ao obter canais conectados:', error);
+      }
     };
 
-    ws.onmessage = (event) => {
+    ws.value.onmessage = (event) => {
       const message = JSON.parse(event.data);
       console.log('WebSocket message:', message);
 
-      // update ticketStore
+      // process diferent websocket events
       switch (message.type) {
-        case 'ticketUpdated':
-        case 'ticketNewMessage':
-          ticketStore.updateTicketInList(message.ticketId, message);
-          break;
         case 'newTicketCreated':
           ticketStore.addNewTicket(message.ticket);
+          break;
+        case 'newMessage': // specific ticket
+          ticketStore.handleNewMessage(message.ticketId, message.message);
+          break;
+        case 'ticketUpdated': // updated channel - general event
+          ticketStore.fetchTickets(); // reload all tickets
+          break;
+        case 'messageProcessed':
+          // IA finish process
+          console.log(`IA processou mensagem no ticket ${message.ticketId}`);
           break;
       }
     };
 
-    ws.onclose = () => {
+    ws.value.onclose = () => {
       console.log('WebSocket desconectado');
       isConnected.value = false;
     };
+
+    ws.value.onerror = (error) => {
+      console.error('WebSocket error:', error);
+    };
+  };
+
+  const disconnect = () => {
+    ws.value?.close();
+    isConnected.value = false;
   };
 
   return {
     isConnected,
-    connect
+    connect,
+    disconnect
   };
 });

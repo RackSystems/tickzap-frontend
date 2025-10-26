@@ -82,6 +82,10 @@ async function sendMessage(): Promise<void> {
   messageContent.value = '';
 }
 
+// TODO: Revisar esta função. Parece estar quebrada e redundante.
+// - Chama `ticketsStore.wantLink()`, que não existe.
+// - Tenta enviar o objeto `mediaRecorder` em vez do áudio.
+// - A lógica correta de envio de áudio já está em `stopRecording()`.
 async function sendAudio(): Promise<void> {
   if (!ticketsStore.selectedTicket) {
     return;

@@ -16,6 +16,34 @@ export const useTicketStore = defineStore('tickets', () => {
       : null;
   });
 
+  // WEBSOCKET functions
+  const handleNewMessage = (ticketId: string, newMessage: Message) => {
+    // add message to selected chat
+    if (selectedTicketId.value === ticketId) {
+      messages.value.push(newMessage);
+    }
+
+    const ticketIndex = tickets.value.findIndex((t) => t.id === ticketId);
+    if (ticketIndex !== -1) {
+      // update tickets list
+      tickets.value[ticketIndex].lastMessage = newMessage.content;
+      tickets.value[ticketIndex].updatedAt = new Date().toISOString();
+
+      // increase count unread messages - except in actual ticket
+      if (selectedTicketId.value !== ticketId) {
+        tickets.value[ticketIndex].unreadCount =
+          (tickets.value[ticketIndex].unreadCount || 0) + 1;
+      }
+    }
+  };
+
+  const addNewTicket = (ticket: Ticket) => {
+    const existingIndex = tickets.value.findIndex((t) => t.id === ticket.id);
+    if (existingIndex === -1) {
+      tickets.value.unshift(ticket); // add to the beginning of the lis
+  };
+
+  // tickets functions
   const fetchTickets = async (): Promise<void> => {
     isLoading.value = true;
     try {
@@ -52,8 +80,7 @@ export const useTicketStore = defineStore('tickets', () => {
     try {
       const response = await apiClient.post(`/tickets/messages/send`, payload);
       console.log(response);
-      // const msg = (response?.data && (response.data.body ?? response.data)) as Message | undefined;
-      // if (msg) messages.value.push(msg);
+      // WebSocket notify when saved message
     } catch (error) {
       handleApiError(error, 'Oops! Ocorreu um erro ao enviar a mensagem.');
     } finally {
@@ -66,13 +93,12 @@ export const useTicketStore = defineStore('tickets', () => {
 
     isLoading.value = true;
     try {
-      const response = await apiClient.post(`/tickets/messages/send`, formData, {
+      await apiClient.post(`/tickets/messages/send`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
       });
-      const msg = (response?.data && (response.data.body ?? response.data)) as Message | undefined;
-      if (msg) messages.value.push(msg);
+      //UI is updated by WebSocket 'newMessage' event
     } catch (error) {
       handleApiError(error, 'Oops! Ocorreu um erro ao enviar a mídia.');
     } finally {
@@ -103,6 +129,10 @@ export const useTicketStore = defineStore('tickets', () => {
     messages,
     isLoading,
     selectedTicket,
+    // WebSocket functions
+    addNewTicket,
+    handleNewMessage,
+    // tickets functions
     fetchTickets,
     selectTicket,
     fetchMessages,
