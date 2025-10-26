@@ -2,9 +2,11 @@
 import { useRoute } from 'vue-router';
 import AuthLayout from '@/layouts/AuthLayout.vue';
 import DefaultLayout from '@/layouts/DefaultLayout.vue';
-import { computed } from 'vue';
+import { computed, onMounted, onUnmounted } from 'vue';
+import { useWebSocketStore } from "@/features/webSocket/useWebSocketStore";
 
 const route = useRoute();
+const websocketStore = useWebSocketStore();
 
 const layout = computed<typeof DefaultLayout | typeof AuthLayout>(() => {
   const type = route.meta.layout || 'default';
@@ -12,6 +14,16 @@ const layout = computed<typeof DefaultLayout | typeof AuthLayout>(() => {
   return type === 'default'
     ? DefaultLayout
     : AuthLayout;
+});
+
+onMounted(() => {
+  websocketStore.connect();
+  console.info('WebSocket connected: ', websocketStore.isConnected)
+});
+
+onUnmounted(() => {
+  websocketStore.disconnect();
+  console.info('WebSocket connected: ', websocketStore.isConnected)
 });
 </script>
 

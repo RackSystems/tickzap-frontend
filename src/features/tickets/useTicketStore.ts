@@ -40,7 +40,8 @@ export const useTicketStore = defineStore('tickets', () => {
   const addNewTicket = (ticket: Ticket) => {
     const existingIndex = tickets.value.findIndex((t) => t.id === ticket.id);
     if (existingIndex === -1) {
-      tickets.value.unshift(ticket); // add to the beginning of the lis
+      tickets.value.unshift(ticket);
+    } // add to the beginning of the lis
   };
 
   // tickets functions
