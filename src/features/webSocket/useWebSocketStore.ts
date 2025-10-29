@@ -8,6 +8,7 @@ export const useWebSocketStore = defineStore('websocket', () => {
   const ws = ref<WebSocket | null>(null);
 
   const connect = (baseUrl: string = 'ws://localhost:3000') => {
+    console.log("WEBSOCKET CONNECTED")
     const ticketStore = useTicketStore();
 
     // WebSocket connection
@@ -27,6 +28,7 @@ export const useWebSocketStore = defineStore('websocket', () => {
             channelId
           }));
         }
+        console.log("CANAL ", channelId)
       } catch (error) {
         console.error('Erro ao obter canais conectados:', error);
       }
@@ -55,8 +57,8 @@ export const useWebSocketStore = defineStore('websocket', () => {
     };
 
     ws.value.onclose = () => {
-      console.log('WebSocket desconectado');
       isConnected.value = false;
+      console.log('WebSocket desconectado');
     };
 
     ws.value.onerror = (error) => {
@@ -67,6 +69,7 @@ export const useWebSocketStore = defineStore('websocket', () => {
   const disconnect = () => {
     ws.value?.close();
     isConnected.value = false;
+    console.log('WebSocket disconnected');
   };
 
   return {

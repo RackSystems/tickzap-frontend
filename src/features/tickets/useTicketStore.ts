@@ -18,6 +18,7 @@ export const useTicketStore = defineStore('tickets', () => {
 
   // WEBSOCKET functions
   const handleNewMessage = (ticketId: string, newMessage: Message) => {
+    console.log("ENTROU NO WEBSOCKET - NOVA MENSAGEM")
     // add message to selected chat
     if (selectedTicketId.value === ticketId) {
       messages.value.push(newMessage);
@@ -38,6 +39,7 @@ export const useTicketStore = defineStore('tickets', () => {
   };
 
   const addNewTicket = (ticket: Ticket) => {
+    console.log("ENTROU NO WEBSOCKET - NOVO TICKET")
     const existingIndex = tickets.value.findIndex((t) => t.id === ticket.id);
     if (existingIndex === -1) {
       tickets.value.unshift(ticket);
