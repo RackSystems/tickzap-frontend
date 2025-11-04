@@ -8,8 +8,10 @@ import IconClose from '@/components/Icons/IconClose.vue';
 import UserService from "@/features/auth/services/UserService";
 import {handleApiError} from "@/api/handleApiError";
 import {useInactivityMonitor} from "@/composables/useInactivityMonitor";
+import { useWebSocketStore } from '@/features/websocket/useWebSocketStore';
 
 const auth = useAuthStore();
+const webSocketStore = useWebSocketStore();
 
 const isLoading = ref<boolean>(false);
 const mobileMenuOpen = ref<boolean>(false);
@@ -34,8 +36,10 @@ const OFFLINE_TIMEOUT_MINUTES = 15
 const { isUserActive, inactiveMinutes } = useInactivityMonitor(1000, IDLE_TIMEOUT_SECONDS);
 
 onMounted(() => {
+  webSocketStore.connect('global');
+  webSocketStore.connect('ticket');
   console.log('STATUS ', currentStatus.value);
-  console.log('is user active ', isUserActive)
+  console.log('is user active ', isUserActive);
 });
 
 onUpdated(() => {
@@ -187,7 +191,7 @@ async function logoutHandler(): Promise<void> {
             </label>
             <ul tabindex="0" class="menu menu-sm dropdown-content mt-3 p-2 shadow bg-base-100 rounded-box w-36">
               <li>
-                <button>Meu Perfil</button>
+                <button @click="">Meu Perfil</button>
               </li>
 
               <li>
