@@ -3,12 +3,14 @@ import { defineStore } from 'pinia';
 import type { Ticket, Message } from './types';
 import apiClient from '@/api/apiClient';
 import { handleApiError } from '@/api/handleApiError';
+import { useWebSocketStore } from '@/features/webSocket/useWebSocketStore';
 
 export const useTicketStore = defineStore('tickets', () => {
   const isLoading = ref<boolean>(false);
   const selectedTicketId = ref<string | null>(null);
   const tickets = ref<Ticket[]>([]);
   const messages = ref<Message[]>([]);
+  const webSocketStore = useWebSocketStore();
 
   const selectedTicket = computed(() => {
     return selectedTicketId.value
@@ -74,7 +76,11 @@ export const useTicketStore = defineStore('tickets', () => {
   };
 
   const selectTicket = async (ticketId: string): Promise<void> => {
+    // if (selectedTicketId.value) {
+    //   webSocketStore.unwatchTicket();
+    // }
     selectedTicketId.value = ticketId;
+    webSocketStore.watchTicket(ticketId);
     await fetchMessages();
   };
 
@@ -122,6 +128,9 @@ export const useTicketStore = defineStore('tickets', () => {
   };
 
   const clearChat = (): void => {
+    if (selectedTicketId.value) {
+      webSocketStore.unwatchTicket();
+    }
     selectedTicketId.value = null;
     messages.value = [];
   };

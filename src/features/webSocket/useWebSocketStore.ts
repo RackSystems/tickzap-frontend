@@ -2,6 +2,7 @@ import { defineStore } from 'pinia';
 import { ref } from 'vue';
 import { useTicketStore } from '@/features/tickets/useTicketStore';
 import { channelService } from '@/features/channels/service';
+import { useAuthStore } from '@/features/auth/useAuthStore';
 
 export const useWebSocketStore = defineStore('websocket', () => {
   const isGlobalConnected = ref(false);
@@ -9,9 +10,21 @@ export const useWebSocketStore = defineStore('websocket', () => {
   const globalWs = ref<WebSocket | null>(null);
   const ticketWs = ref<WebSocket | null>(null);
 
-  const connect = (type: 'global' | 'ticket', baseUrl: string = 'ws://localhost:3000') => {
+  const connect = (type: 'global' | 'ticket') => {
+    const authStore = useAuthStore();
+    if (!authStore.user?.id) {
+      console.error('WebSocket connection failed: User not authenticated or user ID is missing.');
+      return;
+    }
+
+    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const host = window.location.host;
+    const wsHost = import.meta.env.DEV ? 'localhost:3000' : host;
+
     const path = type === 'global' ? '/ws-global' : '/ws-ticket';
-    let ws = new WebSocket(`${baseUrl}${path}`);
+    const wsUrl = `${protocol}//${wsHost}${path}?userId=${authStore.user.id}`;
+
+    let ws = new WebSocket(wsUrl);
 
     if (type === 'global') {
       globalWs.value = ws;

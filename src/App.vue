@@ -20,10 +20,12 @@ const layout = computed<typeof DefaultLayout | typeof AuthLayout>(() => {
 
 watch(() => authStore.isLoggedIn, (isLoggedIn) => {
   if (isLoggedIn) {
-    websocketStore.connect();
+    websocketStore.connect('global');
+    websocketStore.connect('ticket');
     console.info('User authenticated, connecting WebSocket...');
   } else {
-    websocketStore.disconnect();
+    websocketStore.disconnect('global');
+    websocketStore.disconnect('ticket');
     console.info('User logged out, disconnecting WebSocket...');
   }
 }, { immediate: true });
