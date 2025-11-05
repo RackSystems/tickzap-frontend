@@ -2,13 +2,9 @@
 import { useRoute } from 'vue-router';
 import AuthLayout from '@/layouts/AuthLayout.vue';
 import DefaultLayout from '@/layouts/DefaultLayout.vue';
-import { computed, watch } from 'vue';
-import { useWebSocketStore } from "@/features/webSocket/useWebSocketStore";
-import { useAuthStore } from "@/features/auth/useAuthStore";
+import { computed } from 'vue';
 
 const route = useRoute();
-const authStore = useAuthStore();
-const websocketStore = useWebSocketStore();
 
 const layout = computed<typeof DefaultLayout | typeof AuthLayout>(() => {
   const type = route.meta.layout || 'default';
@@ -17,18 +13,6 @@ const layout = computed<typeof DefaultLayout | typeof AuthLayout>(() => {
     ? DefaultLayout
     : AuthLayout;
 });
-
-watch(() => authStore.isLoggedIn, (isLoggedIn) => {
-  if (isLoggedIn) {
-    websocketStore.connect('global');
-    websocketStore.connect('ticket');
-    console.info('User authenticated, connecting WebSocket...');
-  } else {
-    websocketStore.disconnect('global');
-    websocketStore.disconnect('ticket');
-    console.info('User logged out, disconnecting WebSocket...');
-  }
-}, { immediate: true });
 </script>
 
 <template>
