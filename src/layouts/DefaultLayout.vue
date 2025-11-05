@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {ref, computed, onMounted, onUpdated, watch} from 'vue'
+import { ref, computed, onMounted, onUpdated, watch, onUnmounted } from 'vue';
 import IconLoading from '@/components/Icons/IconLoading.vue';
 import {useAuthStore} from '@/features/auth/useAuthStore';
 import IconMenu from '@/components/Icons/IconMenu.vue';
@@ -35,12 +35,8 @@ const IDLE_TIMEOUT_SECONDS = 300
 const OFFLINE_TIMEOUT_MINUTES = 15
 const { isUserActive, inactiveMinutes } = useInactivityMonitor(1000, IDLE_TIMEOUT_SECONDS);
 
-onMounted(() => {
-  webSocketStore.connect('global');
-  webSocketStore.connect('ticket');
-  console.log('STATUS ', currentStatus.value);
-  console.log('is user active ', isUserActive);
-});
+onMounted(() => webSocketStore.connect());
+onUnmounted(() => webSocketStore.disconnect());
 
 onUpdated(() => {
   console.log('STATUS (updated): ', currentStatus.value);

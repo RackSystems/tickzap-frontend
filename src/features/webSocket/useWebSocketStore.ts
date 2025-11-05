@@ -5,89 +5,62 @@ import { channelService } from '@/features/channels/service';
 import { useAuthStore } from '@/features/auth/useAuthStore';
 
 export const useWebSocketStore = defineStore('websocket', () => {
-  const isGlobalConnected = ref(false);
-  const isTicketConnected = ref(false);
-  const globalWs = ref<WebSocket | null>(null);
-  const ticketWs = ref<WebSocket | null>(null);
+  const isConnected = ref(false);
+  const ws = ref<WebSocket | null>(null);
 
-  const connect = (type: 'global' | 'ticket') => {
+  const connect = () => {
+    console.log('conectou');
     const authStore = useAuthStore();
     if (!authStore.user?.id) {
       console.error('WebSocket connection failed: User not authenticated or user ID is missing.');
       return;
     }
 
-    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const host = window.location.host;
-    const wsHost = import.meta.env.DEV ? 'localhost:3000' : host;
+    const path = `ws://localhost:3000/ws-global?userId=${authStore.user.id}`;
 
-    const path = type === 'global' ? '/ws-global' : '/ws-ticket';
-    const wsUrl = `${protocol}//${wsHost}${path}?userId=${authStore.user.id}`;
-
-    let ws = new WebSocket(wsUrl);
-
-    if (type === 'global') {
-      globalWs.value = ws;
-    } else {
-      ticketWs.value = ws;
-    }
+    let ws = new WebSocket(path);
 
     ws.onopen = () => {
-      console.log(`WebSocket ${type} conectado`);
-      if (type === 'global') {
-        isGlobalConnected.value = true;
-        channelService.listByStatus("connected").then(channels => {
+      isConnected.value = true;
+      console.log(`WebSocket conectado`);
+      channelService.list()
+        .then(channels => {
           channels.forEach(channel => {
-            if (channel.id) {
-              joinChannel(channel.id);
-            }
+            console.log(channel)
+            joinChannel(channel.id)
           });
         });
-      } else {
-        isTicketConnected.value = true;
-      }
     };
 
     ws.onmessage = (event) => {
+      console.log(event.data);
       const message = JSON.parse(event.data);
       console.log(`WebSocket ${type} message:`, message);
       const ticketStore = useTicketStore();
 
-      if (type === 'global') {
-        if (message.type === 'ticketUpdated') {
-          ticketStore.fetchTickets();
-        }
-      } else {
-        if (message.type === 'newMessage' && message.ticketId === ticketStore.selectedTicketId) {
-          ticketStore.handleNewMessage(message.ticketId, message.message);
-        } else if (message.type === 'messageProcessed') {
-          console.log(`IA processou mensagem no ticket ${message.ticketId}`);
-        }
+      if (message.type === 'ticketUpdated') {
+        ticketStore.fetchTickets();
+      }
+      if (message.type === 'newMessage' && message.ticketId === ticketStore.selectedTicketId) {
+        ticketStore.handleNewMessage(message.ticketId, message.message);
+      }
+      if (message.type === 'messageProcessed') {
+        console.log(`IA processou mensagem no ticket ${message.ticketId}`);
       }
     };
 
     ws.onclose = () => {
-      console.log(`WebSocket ${type} desconectado`);
-      if (type === 'global') {
-        isGlobalConnected.value = false;
-      } else {
-        isTicketConnected.value = false;
-      }
+      console.log(`WebSocket desconectado`);
+      isConnected.value = false;
     };
 
-    ws.onerror = (error) => {
-      console.error(`WebSocket ${type} error:`, error);
-    };
+    ws.onerror = (error) => console.error(`WebSocket error:`, error);
   };
 
-  const disconnect = (type: 'global' | 'ticket') => {
-    const ws = type === 'global' ? globalWs.value : ticketWs.value;
-    ws?.close();
-    console.log('WebSocket disconnected');
-  };
+  const disconnect = () => ws.value.close();
 
   const joinChannel = (channelId: string) => {
-    globalWs.value?.send(JSON.stringify({ type: 'joinChannel', channelId }));
+    ws.value?.send(JSON.stringify({ type: 'joinChannel', channelId }));
     console.log(`Joined global channel ${channelId}`);
   };
 
@@ -104,8 +77,7 @@ export const useWebSocketStore = defineStore('websocket', () => {
   };
 
   return {
-    isGlobalConnected,
-    isTicketConnected,
+    isConnected,
     connect,
     disconnect,
     joinChannel,

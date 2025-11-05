@@ -2,7 +2,7 @@ import apiClient from '@/api/apiClient';
 import type { Channel, CreateChannelPayload } from '@/features/channels/types';
 
 export const channelService = {
-  async list(): Promise<Channel[]> {
+  async list(config = {}): Promise<Channel[]> {
     const response = await apiClient.get('/channels');
     return response.data;
   },
@@ -18,13 +18,6 @@ export const channelService = {
 
   async connect(id: string): Promise<any> {
     const response = await apiClient.get(`/channels/${id}/connect`);
-    return response.data;
-  },
-
-  async listByStatus(status: string): Promise<Channel[]> {
-    const response = await apiClient.get<Channel[]>('/channels', {
-      params: { status }
-    });
     return response.data;
   },
 };
